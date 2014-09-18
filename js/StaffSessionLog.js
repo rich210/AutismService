@@ -5,6 +5,7 @@ var clientSiteUrl = "/Clients/";
 var isStaffSessionLog = true;
 var CISLogingName = "carlos.acevedo";
 
+
 function initStaffSessionLog() {
     startStaffSessionLog();
     arrayStatus[0] = "Pending";
@@ -26,6 +27,7 @@ function startStaffSessionLog() {
     $("#Intake-System-StaffSession-Daly-Signature").on('click', function () {
         getStaffSchedulingByDate();
     });
+   
 }
 
 function loadStafflog() {
@@ -93,6 +95,8 @@ function ProcessResponseStaffScheduleByDate(result) {
     var totalMinutes = 0;
     var scheduledsessions = $.parseJSON(result);
     var scheduledsessionshtml = "";
+    var totalTime = 0;
+    var isSignature = false;
 
     for (var r = 0; r < oldrow.length; r++) {
         schedulesessiontable.removeRow(oldrow[r]);
@@ -113,7 +117,7 @@ function ProcessResponseStaffScheduleByDate(result) {
         scheduledsessionshtml += "<tr data-id='" + s.NPA_APPT_ID + "'><td>" + sd.format("mm/dd/yyyy") + "</td><td>" + sd.format("hh:MM TT") + "</td><td>" + ed.format("hh:MM TT") + "</td><td>" + s.CPTCode + "</td><td>" + clientUrl + "</td><td>" + hours + ':' + minutes + "</td></tr>";
         arrayStaffSchedule[s.NPA_APPT_ID] = s;
     });
-    
+    totalTime = totalMinutes;
     if (totalMinutes > 59) {
         totalHours += parseInt(totalMinutes/60);
         totalMinutes = totalMinutes % 60;
@@ -161,15 +165,54 @@ function ProcessResponseStaffScheduleByDate(result) {
             '</div>' +
             '<div id="totalHours"><label>Total Hrs: '+totalHours+':'+totalMinutes+' </label></div>' +
             '<div id="totalHours"><label>Associate Signature <div id="signature"></div></label></div>' +
-            '<button class="info" type="submit">Save</button>' +
-            '<button class="danger" type="reset">Reset</button>' +
+            '<button id="saveTimeSheetSignature" class="info" type="submit">Save</button>' +
+            '<button class="danger">Cancel</button>' +
             '</form>';
             $.Dialog.content(content);
             $.Metro.initInputs();
             $('#Intake-System-StaffSession-Log-Schedule-Signature-Timesheet').footable();
             $("#signature").jSignature();
+            $('.danger').on('click', function () {
+                $.Dialog.close();
+            });
+            $("#signature").bind('change', function (e) { isSignature = true;  });
+            $('#saveTimeSheetSignature').on('click', function (e) {
+                saveStaffScheduleSignature(e, totalTime, isSignature);
+            });
+            
         }
     });
     $.Dialog.autoResize();
 }
 
+function saveStaffScheduleSignature(e,totalTime, isSignature){
+    e.preventDefault();
+    try {
+        if (!isSignature) throw 'Not signed'
+        var signature = $("#signature").jSignature("getData");
+        var srchRequest = JSON.stringify({ Signature: signature, MinutesSigned: totalTime, UserName: CISLogingName ,TimeSheetDate: new Date() });
+        $.ajax({
+            dataType: "jsonp",
+            url: clientIntakewebservice + '/SaveStaffScheduleSignature?callback=CheckSaveStaffScheduleByDate&$format=json&sr=' + srchRequest,
+            cache: false,
+            jsonp: false,
+            data: {},
+            jsonpCallback: "CheckSaveStaffScheduleByDate"
+        });
+    } catch (e) {
+        alert(e);
+    }
+    
+}
+
+function CheckSaveStaffScheduleByDate(result) {
+    
+    var message = $.parseJSON(result);
+    try {
+        if (message.result == false) throw "Error on save signature";
+        $.Dialog.close();
+
+    } catch (e) {
+        alert(e)
+    }
+}
