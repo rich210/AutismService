@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <link rel="stylesheet" href="css/metro-bootstrap.css">
+    <link href="css/footable.metro.css" rel="stylesheet" type="text/css">
+    <script src="js/jquery/jquery.min.js"></script>
+    <script src="js/jquery/jquery.widget.min.js"></script>
+    <script src="js/metro.min.js"></script>
+    <script src="js/footable.js" type="text/javascript"></script>
+    <script src="js/jSignature.min.js"></script>
+    <script src="js/StaffSessionLog.js"></script>
+
+    <title></title>
+
+</head>
+<body>
+    <div class="metro">
+        <div class="container">
+            <div style="width:250px;">
+                <div class="input-control text" id="staff-session-date"><input type="text" id="staff-session-datetxt"><a class="btn-date"></a></div>
+            </div>
+            <div>
+                <table id="Intake-System-StaffSession-Log-Schedule" data-page-size="15" data-page-navigation=".paginationschedule" data-sort-initial="descending">
+                    <thead>
+                        <tr>
+                            <th data-type="date" data-sort-initial="true">Date</th>
+                            <th>Begins </th>
+                            <th>Ends</th>
+                            <th>Activity</th>
+                            <th data-sort-ignore="true">Client</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot class="hide-if-no-paging">
+                        <tr>
+                            <td colspan="6">
+                                <div class="paginationschedule pagination pagination-centered"></div>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+                
+            </div>
+            <div>
+                <a id="Intake-System-StaffSession-Daly-Signature" class="m-btn blue"><i class="icon-pen icon-white"></i> Staff Daily Signature</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(initStaffSessionLog());
+        
+        
+    </script>
+</body>
+</html>
