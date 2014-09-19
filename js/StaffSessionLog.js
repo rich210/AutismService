@@ -75,9 +75,8 @@ function ProcessResponseStaffScheduleSessions(result) {
 
 function getStaffSchedulingByDate() {
     var reqDate = new Date();
-    reqDate.setDate(reqDate.getDate() -1);
+    reqDate.setDate(reqDate.getDate() -2); //to get  17/09/2014
     var srchRequest = JSON.stringify({ dateInitial: reqDate, UserName: CISLogingName });
-    console.log(srchRequest);
     $.ajax({
         dataType: "jsonp",
         url: clientIntakewebservice + '/GetStaffSchedulingByDate?callback=ProcessResponseStaffScheduleByDate&$format=json&sr=' + srchRequest,
@@ -93,14 +92,24 @@ function ProcessResponseStaffScheduleByDate(result) {
     var oldrow = $('#Intake-System-StaffSession-Log-Schedule-Timesheet' + '>tbody>tr');
     var totalHours = 0;
     var totalMinutes = 0;
-    var scheduledsessions = $.parseJSON(result);
+    var isSigned = false;
+    var scheduledsessions = $.parseJSON(result).SessionLogs;
+    var timesheet = $.parseJSON(result).Timesheets;
     var scheduledsessionshtml = "";
     var totalTime = 0;
     var isSignature = false;
+    var signature = "";
 
     for (var r = 0; r < oldrow.length; r++) {
         schedulesessiontable.removeRow(oldrow[r]);
     }
+    if(timesheet != null && timesheet != "")
+    {
+        isSigned = true;
+    }
+    $.each(timesheet, function (i, s) {
+        signature = s.Signature;
+    });
     $.each(scheduledsessions, function (i, s) {
         var sd = new Date(parseInt(s.Started.substr(6)));
         var ed = new Date(parseInt(s.Ended.substr(6)));
@@ -164,14 +173,21 @@ function ProcessResponseStaffScheduleByDate(result) {
             '</table>'+
             '</div>' +
             '<div id="totalHours"><label>Total Hrs: '+totalHours+':'+totalMinutes+' </label></div>' +
-            '<div id="totalHours"><label>Associate Signature <div id="signature"></div></label></div>' +
+            '<div><label>Associate Signature <div id="signature"></div></label></div>' +
             '<button id="saveTimeSheetSignature" class="info" type="submit">Save</button>' +
             '<button class="danger">Cancel</button>' +
             '</form>';
             $.Dialog.content(content);
             $.Metro.initInputs();
             $('#Intake-System-StaffSession-Log-Schedule-Signature-Timesheet').footable();
-            $("#signature").jSignature();
+            
+            if (isSigned) {
+                var htmlsign = '<div id="signatureparent"><img src="' + signature.replace(/ /g, "+") + '" alt="Signed"></div>';
+                $("#signature").replaceWith(htmlsign);
+                $('#saveTimeSheetSignature').attr('disabled', 'disabled');
+            } else {
+                $("#signature").jSignature();
+            }
             $('.danger').on('click', function () {
                 $.Dialog.close();
             });
@@ -189,8 +205,10 @@ function saveStaffScheduleSignature(e,totalTime, isSignature){
     e.preventDefault();
     try {
         if (!isSignature) throw 'Not signed'
+        var timeSheetDate = new Date();
+        timeSheetDate.setDate(timeSheetDate.getDate() - 2); //to get 17/09/2014
         var signature = $("#signature").jSignature("getData");
-        var srchRequest = JSON.stringify({ Signature: signature, MinutesSigned: totalTime, UserName: CISLogingName ,TimeSheetDate: new Date() });
+        var srchRequest = JSON.stringify({ Signature: signature, MinutesSigned: totalTime, UserName: CISLogingName, TimeSheetDate: timeSheetDate  });
         $.ajax({
             dataType: "jsonp",
             url: clientIntakewebservice + '/SaveStaffScheduleSignature?callback=CheckSaveStaffScheduleByDate&$format=json&sr=' + srchRequest,
