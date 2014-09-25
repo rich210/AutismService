@@ -1,4 +1,4 @@
-﻿var clientIntakewebservice = "http://137.135.46.61/ClientIntake/esscDWHService.svc";
+﻿var clientIntakewebservice = "https://api.essocal.org/PracticeManagement/esscDWHService.svc";
 var arrayStaffSchedule = [];
 var arrayStatus = [];
 var clientSiteUrl = "/Clients/";
@@ -41,13 +41,21 @@ function getStaffScheduleSessions() {
     if (reqDate === '') {
         reqDate = new Date();
     }
+    
     $.ajax({
-        dataType: "jsonp",
-        url: clientIntakewebservice + '/GetStaffScheduling?callback=ProcessResponseStaffScheduleSessions&$format=json&sr=' + srchRequest,
+        dataType: 'jsonp',
+        url: clientIntakewebservice + '/PGetStaffScheduling?callback=ProcessResponseStaffScheduleSessions&$format=json&sr=' + srchRequest,
         cache: false,
         jsonp: false,
         data: {},
-        jsonpCallback: "ProcessResponseStaffScheduleSessions"
+        //username: 'Ricardo.Esparza',
+        //password: 'Easter543',
+        jsonpCallback: "ProcessResponseStaffScheduleSessions",
+        error: function (xhr, ajaxOptions, thrownError) {
+            alert(xhr.status);
+            alert(ajaxOptions);
+            alert(thrownError);
+        }
     });
 }
 
@@ -75,11 +83,11 @@ function ProcessResponseStaffScheduleSessions(result) {
 
 function getStaffSchedulingByDate() {
     var reqDate = new Date();
-    reqDate.setDate(reqDate.getDate() -2); //to get  17/09/2014
+    //reqDate.setDate(reqDate.getDate() -2); //to get  17/09/2014
     var srchRequest = JSON.stringify({ dateInitial: reqDate, UserName: CISLogingName });
     $.ajax({
         dataType: "jsonp",
-        url: clientIntakewebservice + '/GetStaffSchedulingByDate?callback=ProcessResponseStaffScheduleByDate&$format=json&sr=' + srchRequest,
+        url: clientIntakewebservice + '/PGetStaffSchedulingByDate?callback=ProcessResponseStaffScheduleByDate&$format=json&sr=' + srchRequest,
         cache: false,
         jsonp: false,
         data: {},
@@ -206,12 +214,12 @@ function saveStaffScheduleSignature(e,totalTime, isSignature){
     try {
         if (!isSignature) throw 'Not signed'
         var timeSheetDate = new Date();
-        timeSheetDate.setDate(timeSheetDate.getDate() - 2); //to get 17/09/2014
+        //timeSheetDate.setDate(timeSheetDate.getDate() - 2); //to get 17/09/2014
         var signature = $("#signature").jSignature("getData");
         var srchRequest = JSON.stringify({ Signature: signature, MinutesSigned: totalTime, UserName: CISLogingName, TimeSheetDate: timeSheetDate  });
         $.ajax({
             dataType: "jsonp",
-            url: clientIntakewebservice + '/SaveStaffScheduleSignature?callback=CheckSaveStaffScheduleByDate&$format=json&sr=' + srchRequest,
+            url: clientIntakewebservice + '/PSaveStaffScheduleSignature?callback=CheckSaveStaffScheduleByDate&$format=json&sr=' + srchRequest,
             cache: false,
             jsonp: false,
             data: {},
