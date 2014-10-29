@@ -44,9 +44,11 @@ function startStaffSessionLog() {
         defaultView: 'agendaDay',
         height: 500,
         eventClick: function (calEvent, jsEvent, view) {
-            content = '';
+            var content = '';
+            var title = '';
             if (calEvent.type == "Non-Billable" || calEvent.type == "Billable")
             {
+                title = 'RAW Appointment';
                 content = '<label>Date</label>' +
                            '<label>' + moment(calEvent.start).format('L') + '</label>' +
                           // '<input type="hidden" id="Change-BeginDate"  disable="true" value="' + sd.format("mm/dd/yyyy") + '">' +
@@ -56,10 +58,10 @@ function startStaffSessionLog() {
                            '</div>' +
                            '<label>Begin Time</label>' +
                            '<div class="input-control select" style="width:60px;margin-left: 10px;">' +
-                               '<select id="Change-BeginDate-Hour">' + getTimevalues_Hour() + '</select>' +
+                               '<select id="Change-BeginDate-Hour"><option value ="' + moment(calEvent.start).format("HH") + '">' + moment(calEvent.start).format("HH") + '</option>' + getTimevalues_Hour() + '</select>' +
                            '</div>' +
                            '<div class="input-control select" style="width:60px;margin-left: 10px;">' +
-                               '<select id="Change-BeginDate-Min">' + getTimevalues_Min() + '</select>' +
+                               '<select id="Change-BeginDate-Min"><option value ="' + moment(calEvent.start).format("mm") + '">' + moment(calEvent.start).format("mm") + '</option>' + getTimevalues_Min() + '</select>' +
                            '</div>' +
                            '<div class="input-control select" style="width:60px;margin-left: 10px;">' +
                                '<select id="Change-BeginDate-State">' +
@@ -69,10 +71,10 @@ function startStaffSessionLog() {
                            '</div>' +
                            '<label>End Time</label>' +
                            '<div class="input-control select" style="width:60px;margin-left: 10px;">' +
-                               '<select id="Change-EndDate-Hour">' + getTimevalues_Hour() + '</select>' +
+                               '<select id="Change-EndDate-Hour"><option value ="' + moment(calEvent.end).format("HH") + '">' + moment(calEvent.end).format("HH") + '</option>' + getTimevalues_Hour() + '</select>' +
                            '</div>' +
                            '<div class="input-control select" style="width:60px;margin-left: 10px;">' +
-                               '<select id="Change-EndDate-Min">' + getTimevalues_Min() + '</select>' +
+                               '<select id="Change-EndDate-Min"><option value ="' + moment(calEvent.end).format("mm") + '">' + moment(calEvent.end).format("mm") + '</option>' + getTimevalues_Min() + '</select>' +
                            '</div>' +
                            '<div class="input-control select" style="width:60px;margin-left: 10px;">' +
                                '<select id="Change-EndDate-State">' +
@@ -89,12 +91,13 @@ function startStaffSessionLog() {
                             '<a id="saveButton" class="button primary" onclick="saveScheduleSession()">Save</a>&nbsp;' +
                             '<a class="button danger" type="button" onclick="$.Dialog.close()">Cancel</a> ' +
                             '</div>' ;
+                
             } else {
                 var clientUrl = ''
                 if (calEvent.clientId != null && calEvent.clientId != 0) {
                     clientUrl = "<a href='" + clientSiteUrl + calEvent.clientId + "' class='m-btn button primary  blue' ><i class='icon-folder-close icon-white'></i> " + calEvent.clientName + "</a>";
                 }
-                content = '<div class = "grid">'+
+                /*content = '<div class = "grid">'+
                             '<label>Date</label>' +
                            '<label class="bg-cyan">' + moment(calEvent.start).format('L') + '</label>' +
                            '<label>Begin</label>' +
@@ -110,9 +113,65 @@ function startStaffSessionLog() {
                            '</br>'+
                             '<div class="form-actions">' +
                             '<a class="button danger" type="button" onclick="$.Dialog.close()">Cancel</a> ' +
-                            '</div>';
+                            '</div>';*/
+                title = 'Appointment';
+                content = '<div>' +
+                            '<table id="table" data-page-size="15" data-page-navigation=".paginationschedule" data-sort-initial="descending">' +
+                                '<thead>' +
+                                    '<tr>' +
+                                        '<th data-type="date" data-sort-initial="true">Date</th>' +
+                                        '<th>Begins </th>' +
+                                        '<th>Ends</th>' +
+                                        '<th>Activity</th>' +
+                                        '<th data-sort-ignore="true">Client</th>' +
+                                        '<th>Status</th>' +
+                                    '</tr>' +
+                                '</thead>' +
+                                '<tbody>' +
+                                '<td>' + moment(calEvent.start).format('L') + '</td>' +
+                                '<td>' + moment(calEvent.start).format("HH:mm a") + '</td>' +
+                                '<td>' + moment(calEvent.end).format("HH:mm a") + '</td>' +
+                                '<td>' + calEvent.cPTCode + '</td>' +
+                                '<td>' + clientUrl + '</td>' +
+                                '<td>' + calEvent.status + '</td>' +
+                                '</tbody>' +
+                                '<tfoot class="hide-if-no-paging">' +
+                                    '<tr>' +
+                                        '<td colspan="6">' +
+                                            '<div class="paginationschedule pagination pagination-centered"></div>' +
+                                        '</td>' +
+                                    '</tr>' +
+                                '</tfoot>' +
+                            '</table>' +
+                        '</div>'+
+                        '<div class="form-actions">' +
+                           '<a class="button danger" type="button" onclick="$.Dialog.close()">Cancel</a> ' +
+                        '</div>';
             }
-            displayDialog(calEvent.title, content);
+            $.Dialog({
+                overlay: true,
+                shadow: false,
+                flat: true,
+                draggable: true,
+                width: 450,
+                title: title,
+                content: content,
+                padding: 10,
+                position: 'auto',
+                onShow: function (_dialog) {
+                    $.Metro.initInputs();
+                    $.Dialog.autoResize();
+                    $('#table').footable();
+                    $("#Change-BeginDate-Hour").val(moment(calEvent.start).format("HH"));
+                    $("#Change-BeginDate-Min").val(moment(calEvent.start).format("mm"));
+                    $("#Change-BeginDate-State").val(moment(calEvent.start).format("a"));
+
+                    $("#Change-EndDate-Hour").val(moment(calEvent.end).format("HH"));
+                    $("#Change-EndDate-Min").val(moment(calEvent.end).format("mm"));
+                    $("#Change-EndDate-State").val(moment(calEvent.end).format("a"));
+                }
+            });
+            //displayDialog(calEvent.title, content);
             
             //alert('Event: ' + calEvent.type + ' '+ calEvent.cPTCode);
            // alert('Coordinates: ' + jsEvent.pageX + ',' + jsEvent.pageY);
@@ -623,19 +682,6 @@ function getTimevalues_Min() {
     return time;
 }
 function displayDialog(title, content) {
-    $.Dialog({
-        overlay: true,
-        shadow: false,
-        flat: true,
-        draggable: true,
-        width: 400,
-        title: title,
-        content: content,
-        padding: 10,
-        position: 'auto',
-        onShow: function (_dialog) {
-            $.Metro.initInputs();
-            $.Dialog.autoResize();
-        }
-    });
+   
+   
 }
